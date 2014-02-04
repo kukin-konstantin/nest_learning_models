@@ -61,6 +61,7 @@ void nest::Iaf_neuron_dif_alpha_stdp_behavior::set_variables(index t_id_target,i
 {
 	//struct_iaf_neuron_dif_alpha_stdp tmp(t_weight,t_tau_a,20.0,1.0,100.0); //no_good
 	val[std::pair<index,index>(t_id_target,t_id_source)].base_val.weight=t_weight;
+	val[std::pair<index,index>(t_id_target,t_id_source)].dynamic_weight=t_E_rev;
 	//tmp
 }
 
@@ -88,6 +89,6 @@ void nest::Iaf_neuron_dif_alpha_stdp_behavior::set(index t_id_target,index t_id_
   updateValue<double>(d, "lambda",lambda_);
   updateValue<double>(d, "tau_plus",tau_plus_);
   updateValue<double>(d, "Wmax",Wmax_);
-  struct_iaf_neuron_dif_alpha_stdp tmp(weight_,tau_a_,tau_plus_,lambda_,Wmax_);//no_good
+  struct_iaf_neuron_dif_alpha_stdp tmp(weight_,tau_a_,tau_plus_,lambda_,Wmax_,weight_);//no_good
   val[std::pair<index,index>(t_id_target,t_id_source)]=tmp;
 }

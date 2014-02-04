@@ -128,14 +128,16 @@ struct struct_iaf_neuron_dif_alpha_stdp
   double tau_plus;
   double lambda;
   double Wmax;
+  double dynamic_weight;
   struct_iaf_neuron_dif_alpha_stdp(){};
   
-  struct_iaf_neuron_dif_alpha_stdp(double t_weight,double t_tau_a,double t_tau_plus,double t_lambda,double t_Wmax):
+  struct_iaf_neuron_dif_alpha_stdp(double t_weight,double t_tau_a,double t_tau_plus,double t_lambda,double t_Wmax,double t_dynamic_weight):
   base_val(t_weight),
   tau_a(t_tau_a),
   tau_plus(t_tau_plus),
   lambda(t_lambda),
-  Wmax(t_Wmax)
+  Wmax(t_Wmax),
+  dynamic_weight(t_dynamic_weight)
   {}
 };
 

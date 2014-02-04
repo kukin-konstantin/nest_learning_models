@@ -45,6 +45,7 @@ nest::iaf_neuron_dif_alpha_stdp::Parameters_::Parameters_()
     Tau_    ( 10.0    ),  // ms
     TauR_   (  2.0    ),  // ms
     E_L_     (-70.0    ),  // mV
+    V_reset_ (0.0),
     V_th_  (-54.0),  // mV
     I_e_    (  0.0    )   // pA
     //n_in_(0)
@@ -90,6 +91,7 @@ void nest::iaf_neuron_dif_alpha_stdp::Parameters_::get(DictionaryDatum &d) const
   def<double>(d, names::E_L, E_L_);   // Resting potential
   def<double>(d, names::I_e, I_e_);
   def<double>(d, names::V_th, V_th_); // threshold value
+  def<double>(d, names::V_reset, V_reset_);
   def<double>(d, names::C_m, C_);
   def<double>(d, names::tau_m, Tau_);
   def<double>(d, names::t_ref, TauR_);
@@ -100,7 +102,8 @@ void nest::iaf_neuron_dif_alpha_stdp::Parameters_::set(const DictionaryDatum& d)
 {
   
   updateValue<double>(d, names::E_L, E_L_);
-  updateValue<double>(d, names::V_th, V_th_); 
+  updateValue<double>(d, names::V_th, V_th_);
+  updateValue<double>(d, names::V_reset, V_reset_);
   updateValue<double>(d, names::I_e, I_e_);
   updateValue<double>(d, names::C_m, C_);
   updateValue<double>(d, names::tau_m, Tau_);
@@ -270,7 +273,10 @@ void nest::iaf_neuron_dif_alpha_stdp::stdp_procedure(double time_post_spike)
 		double t_weight=(*it).second.base_val.weight;
 		if (t_weight>=0.0)
 		{
+		  if (std::abs(minus_dt)<2.0)
+		  {
 		  (*it).second.base_val.weight=facilitate(t_weight,std::exp(minus_dt / t_tau_plus),t_lambda,t_Wmax);
+		  }
 		}
 	    }
 	    it++;
@@ -285,14 +291,15 @@ void nest::iaf_neuron_dif_alpha_stdp::update(Time const & origin, const long_t f
   const double_t h = Time::get_resolution().get_ms();
   double_t v_old;
   double_t t=origin.get_ms();
+  //std::cout<<S_.v_<<"\t";
   for ( long_t lag = from ; lag < to ; ++lag )
    {
       if ( S_.r_ == 0 ) // neuron not refractory
       {
 	  v_old = S_.v_;
 	  //S_.v_ +=h*( ((P_.E_L_-v_old)/P_.Tau_) + (P_.I_e_/P_.C_) + (S_.I_/P_.C_) )+B_.spikes_.get_value(lag);
-	  S_.v_ +=h*( ((P_.E_L_-v_old)/P_.Tau_) + (P_.I_e_/P_.C_) + (S_.I_/P_.C_) );
-	  //std::cout<<"fun S_.I_="<<S_.I_<<"\t"<<"S_.v_="<<S_.v_<<"\n";
+	  S_.v_ +=h*( ((P_.E_L_-v_old)/P_.Tau_) + (P_.I_e_/P_.C_) + (S_.I_/P_.C_)) ;
+	  //std::cout<<"fun S_.I_="<<S_.I_<<"\t"<<"delta_V="<<h*(S_.I_/P_.C_)<<"\n";
        }
        else // neuron is absolute refractory
 	 --S_.r_;
@@ -300,7 +307,6 @@ void nest::iaf_neuron_dif_alpha_stdp::update(Time const & origin, const long_t f
     
 	// threshold crossing
 	//std::cout<<"index "<<this->get_gid()<<" to "<<to<<"\t"<<"lag "<<lag<<"\t"<<"h "<<h<<"\n";
-	//std::cout<<S_.v_<<"\t";
 	//if (emission_procedure(S_.v_))
 	if (S_.v_ >= P_.V_th_)
 	{
@@ -308,13 +314,13 @@ void nest::iaf_neuron_dif_alpha_stdp::update(Time const & origin, const long_t f
 		//std::cout<<"spike_time"<<"\n";
 		//clean spike history
 		S_.r_ = V_.RefractoryCounts_;
-		S_.v_= P_.E_L_;   
+		S_.v_= P_.V_reset_;   
 		set_spiketime(Time::step(origin.get_steps()+lag)); // change -1
 		//std::cout<<"fun time spike from neuron "<<Time::step(origin.get_steps()+lag)<<"\n";// change -1
 		SpikeEvent se;
 		//se.set_weight(-1.0);
 		network()->send(*this, se, lag);
- 		clear_spike_history();
+ 		clear_spike_history(t+h*lag);
 		//ok=false;
 	}
      
@@ -325,7 +331,9 @@ void nest::iaf_neuron_dif_alpha_stdp::update(Time const & origin, const long_t f
 	//std::cout<<"fun S_.I_="<<S_.I_<<"\n\n";
 	// voltage logging
 	B_.logger_.record_data(origin.get_steps()+lag);
+	
       }
+      //std::cout<<"\n"; // delete after use
 }                           
                      
 void nest::iaf_neuron_dif_alpha_stdp::handle(SpikeEvent & e)

@@ -18,6 +18,7 @@ namespace nest
     u_(0.5),
     R(1.0),
     tau_plus_(20.0),
+    tau_minus_(20.0),
     lambda_(0.01),
     alpha_(1.0),
     mu_plus_(1.0),
@@ -46,6 +47,7 @@ namespace nest
     u_= rhs.u_;
     R= rhs.R;
     tau_plus_ = rhs.tau_plus_;
+    tau_minus_=rhs.tau_minus_;
     lambda_ = rhs.lambda_;
     alpha_ = rhs.alpha_;
     mu_plus_ = rhs.mu_plus_;
@@ -73,6 +75,7 @@ namespace nest
     def<double_t>(d, "u", u_);
     def<double_t>(d, "R", R);
     def<double_t>(d, "tau_plus", tau_plus_);
+    def<double_t>(d, "tau_minus", tau_minus_);
     def<double_t>(d, "lambda", lambda_);
     def<double_t>(d, "alpha", alpha_);
     def<double_t>(d, "mu_plus", mu_plus_);
@@ -91,6 +94,7 @@ namespace nest
     updateValue<double_t>(d, "u", u_);
     updateValue<double_t>(d, "R", R);
     updateValue<double_t>(d, "tau_plus", tau_plus_);
+    updateValue<double_t>(d, "tau_minus", tau_minus_);
     updateValue<double_t>(d, "lambda", lambda_);
     updateValue<double_t>(d, "alpha", alpha_);
     updateValue<double_t>(d, "mu_plus", mu_plus_);
@@ -113,6 +117,7 @@ namespace nest
     set_property<double_t>(d, "us", p, u_);
     set_property<double_t>(d, "Rs", p, R);
     set_property<double_t>(d, "tau_pluss", p, tau_plus_);
+    set_property<double_t>(d, "tau_minuss", p, tau_minus_);
     set_property<double_t>(d, "lambdas", p, lambda_);
     set_property<double_t>(d, "alphas", p, alpha_);
     set_property<double_t>(d, "mu_pluss", p, mu_plus_);
@@ -132,6 +137,7 @@ namespace nest
     initialize_property_array(d, "us");
     initialize_property_array(d, "Rs");
     initialize_property_array(d, "tau_pluss"); 
+    initialize_property_array(d, "tau_minuss");
     initialize_property_array(d, "lambdas"); 
     initialize_property_array(d, "alphas"); 
     initialize_property_array(d, "mu_pluss"); 
@@ -154,7 +160,8 @@ namespace nest
     append_property<double_t>(d, "Fs", F_);
     append_property<double_t>(d, "us", u_);
     append_property<double_t>(d, "Rs", R);
-    append_property<double_t>(d, "tau_pluss", tau_plus_); 
+    append_property<double_t>(d, "tau_pluss", tau_plus_);
+    append_property<double_t>(d, "tau_minuss", tau_minus_);
     append_property<double_t>(d, "lambdas", lambda_); 
     append_property<double_t>(d, "alphas", alpha_); 
     append_property<double_t>(d, "mu_pluss", mu_plus_); 

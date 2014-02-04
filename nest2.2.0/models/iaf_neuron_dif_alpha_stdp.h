@@ -109,9 +109,9 @@ Receives: SpikeEvent, CurrentEvent, DataLoggingRequest
     void get_status(DictionaryDatum &) const;
     void set_status(const DictionaryDatum &);
     
-    void clear_spike_history();
+    void clear_spike_history(double t);
     //double get_sum_I_learn(double_t t);
-    double get_sum_I(double_t t); // get summary current from all incoming synapse
+    double get_sum_I(double t); // get summary current from all incoming synapse
     double heaviside (double t);
     double alpha_function(double t, double tau_a);
     //bool learn_procedure(double_t time,double_t h,double_t v);
@@ -149,8 +149,11 @@ Receives: SpikeEvent, CurrentEvent, DataLoggingRequest
 
       /** Resting potential in mV. */
       double_t E_L_;
-		
-	  /** Threshold in mV.  */
+	
+      /** Reset value in mv*/
+      double_t V_reset_;
+      
+      /** Threshold in mV.  */
       double_t V_th_;
 
       /** External current in pA */
@@ -304,29 +307,63 @@ double iaf_neuron_dif_alpha_stdp::heaviside (double t)
 inline
 double iaf_neuron_dif_alpha_stdp::alpha_function(double t, double tau_a)
 {
-	return (t/tau_a)*exp(-t/tau_a)*heaviside(t);
+	return std::exp(-t/tau_a)*heaviside(t);
 }
 
 
 inline
-void iaf_neuron_dif_alpha_stdp::clear_spike_history()
+void iaf_neuron_dif_alpha_stdp::clear_spike_history(double t)
 {
   std::map<std::pair<index,index>,struct_iaf_neuron_dif_alpha_stdp >::iterator it=behav_loc->val.begin();
+  std::vector<double_t > t_v_time_spike_times;
+  double t_spike;
+  //std::cout<<"before t="<<t<<" ";
   while (it!=behav_loc->val.end())
   {
+    //(*it).second.base_val.v_time_spike_times.clear();
+    //std::copy ((*it).second.base_val.v_time_spike_times.begin(),(*it).second.base_val.v_time_spike_times.end(),std::ostream_iterator<double>(std::cout,"|"));//delete
+    for (int i=0;i!=(*it).second.base_val.v_time_spike_times.size();i++)
+    {
+	t_spike=(*it).second.base_val.v_time_spike_times[i];
+	//std::cout<<"t_spike="<<t_spike<<" ";
+	if (t<=t_spike)
+	{
+	  //std::cout<<"yes"<<" ";
+	  t_v_time_spike_times.push_back(t_spike);
+	}
+    }
     (*it).second.base_val.v_time_spike_times.clear();
+    std::copy (t_v_time_spike_times.begin(),t_v_time_spike_times.end() , std::back_inserter((*it).second.base_val.v_time_spike_times));
+    //std::cout<<"end_ ";
+    //std::copy ((*it).second.base_val.v_time_spike_times.begin(),(*it).second.base_val.v_time_spike_times.end(),std::ostream_iterator<double>(std::cout,"#"));//delete
+    //std::cout<<"_end ";
+    t_v_time_spike_times.clear();
     it++;
   }
 }
 
 inline
-double iaf_neuron_dif_alpha_stdp::get_sum_I(double_t t)
+double iaf_neuron_dif_alpha_stdp::get_sum_I(double t)
 {
 	/*заменить внизу:*/
 	std::map<std::pair<index,index>,struct_iaf_neuron_dif_alpha_stdp>::iterator it=behav_loc->val.begin();
 	double sum=0;
+	//std::cout<<"t"<<t<<"\t";
 	while (it!=behav_loc->val.end())
 	{
+	    /*delete after use*/
+	    /*if (!(*it).second.base_val.v_time_spike_times.empty())
+	    {
+	      std::cout<<"index1="<<(*it).first.first<<"\t";
+	      std::cout<<"index2="<<(*it).first.second<<"\t";
+	      std::cout<<"(";
+	      for (int i=0;i!=(*it).second.base_val.v_time_spike_times.size();i++)
+	      {
+		std::cout<<(*it).second.base_val.v_time_spike_times[i]<<",";
+	      }
+	      std::cout<<")";
+	    }*/
+	    /*delete after use*/
 	    double sum_inter=0;
 	    double t_spike;
 	    //std::cout<<"g_max "<<(*it).second.g_max<<"\t";
@@ -336,12 +373,24 @@ double iaf_neuron_dif_alpha_stdp::get_sum_I(double_t t)
 	    for (int i=0;i!=(*it).second.base_val.v_time_spike_times.size();i++)
 	    {
 		t_spike=(*it).second.base_val.v_time_spike_times[i];
-		sum_inter+=alpha_function(t-t_spike,t_tau_a);
+		//std::cout<<" t_spike="<<t_spike<<"\t";
+		//sum_inter+=alpha_function(t-t_spike,t_tau_a);
+		//std::cout<<" t_spike="<<abs(t_spike-t)<<" ";
+		//if (std::abs(t_spike-t)<0.001)
+		//{
+		  //std::cout<<"index1="<<(*it).first.first<<"\t";
+		  //std::cout<<"index2="<<(*it).first.second<<"\t";
+		  //std::cout<<"t="<<t<<" t_spike="<<t_spike<<" abs="<<abs(t_spike-t)<<" ";
+		  //std::cout<<"dynamic_weight="<<(*it).second.dynamic_weight<<"\t";
+		  sum_inter+=alpha_function(t-t_spike,t_tau_a);
+		//}
 	    }
 	    //std::cout<<"sin="<<sum_inter<<" ";
-	    sum+=(*it).second.base_val.weight*sum_inter;
+	    //sum+=(*it).second.base_val.weight*sum_inter;
+	    sum+=(*it).second.dynamic_weight*sum_inter;
 	    it++;
 	}
+	//std::cout<<sum<<"\n";
 	return sum;
 }
 

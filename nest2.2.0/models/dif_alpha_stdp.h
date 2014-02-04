@@ -100,13 +100,14 @@ class Dif_alpha_stdp : public ConnectionHetWD
   double_t R;
   //trosdyks param
   double_t tau_plus_;
+  double_t tau_minus_;
   double_t lambda_;
   double_t alpha_;
   double_t mu_plus_;
   double_t mu_minus_;  
   double_t Wmax_;
    
-  double_t tau_a_;		 //!< Reversal potential in mV
+  double_t tau_a_;		 
   int t_count;
 };
 
@@ -131,7 +132,7 @@ double_t Dif_alpha_stdp::depress_(double_t w, double_t kminus)
   //double_t norm_w = (w / Wmax_) - (alpha_ * lambda_ * std::pow(w/Wmax_, mu_minus_) * kminus);
   //return norm_w > 0.0 ? norm_w * Wmax_ : 0.0;
   double t_w_new=w-alpha_ * lambda_*kminus;
-  if (0.0>t_w_new)
+  if (0.0>=t_w_new)
   {
     return 0.0;
   }
@@ -199,9 +200,10 @@ void Dif_alpha_stdp::send(Event& e, double_t t_lastspike, const CommonSynapsePro
   if (post_last_spike!=finish)
   {
     minus_dt = -t_spike + (post_last_spike->t_ + dendritic_delay);
-    if (minus_dt != 0)
+    if ((minus_dt != 0)&&(std::abs(minus_dt)<2.0))
       //weight_ = depress_(weight_, std::exp((minus_dt) / 20.0));
-      weight_ = depress_(weight_, std::exp((minus_dt) / tau_plus_));
+      weight_ = depress_(weight_, std::exp(minus_dt/ tau_minus_));
+      //weight_ = depress_(weight_, std::exp((minus_dt) / 20.0));
   }
   // synapse STDP depressing/facilitation dynamics
   //tsodyk
@@ -220,8 +222,10 @@ void Dif_alpha_stdp::send(Event& e, double_t t_lastspike, const CommonSynapsePro
   
   
   //depression due to new pre-synaptic spike
+  double_t dynamic_weight=weight_*u_*R;
+  //std::cout<<"id_source="<<id_source<<" dynamic_weight="<<dynamic_weight<<"\n";
   target_->behav->add_spike_time(id_target,id_source,e.get_stamp().get_ms());
-  target_->behav->set_variables(id_target,id_source,tau_a_,weight_,weight_);
+  target_->behav->set_variables(id_target,id_source,tau_a_,weight_,dynamic_weight);
   e.set_receiver(*target_);
   e.set_weight(weight_*u_*R);
   //e.set_weight(weight_ );

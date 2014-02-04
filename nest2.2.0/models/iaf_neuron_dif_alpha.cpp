@@ -392,7 +392,7 @@ void nest::iaf_neuron_dif_alpha::update(Time const & origin, const long_t from, 
 		//ok=false;
 	}
 	std::cout<<"opop2"<<"\n";
-	/*if (S_.v_ >= P_.V_th_)
+	if (S_.v_ >= P_.V_th_)
 	{
 		//std::cout<<"spike_time"<<"\n";
 		//clean spike history
@@ -404,7 +404,7 @@ void nest::iaf_neuron_dif_alpha::update(Time const & origin, const long_t from, 
 		network()->send(*this, se, lag);
  		clear_spike_history();
 		//ok=false;
-	}*/
+	}
 	//B_.spikes_.get_value(lag);// Need for clean buffer. It's necessary for working log-device wrapper.
 	S_.I_=B_.currents_.get_value(lag);
 	S_.I_ =S_.I_+get_sum_I(t+h*lag); //two time calclulate

@@ -167,33 +167,15 @@ namespace nest
 inline
 double_t STDPPoisson::facilitate_(double_t w, double_t kplus)
 {
-  /*double_t norm_w = (w / Wmax_) + (lambda_ * std::pow(1.0 - (w/Wmax_), mu_plus_) * kplus);
-  return norm_w < 1.0 ? norm_w * Wmax_ : Wmax_;*/
-  double t_w_new=w+lambda_*kplus;
-  if (Wmax_<t_w_new)
-  {
-    return Wmax_;
-  }
-  else
-  {
-    return t_w_new;
-  }
+  double_t norm_w = (w / Wmax_) + (lambda_ * std::pow(1.0 - (w/Wmax_), mu_plus_) * kplus);
+  return norm_w < 1.0 ? norm_w * Wmax_ : Wmax_;
 }
 
 inline 
 double_t STDPPoisson::depress_(double_t w, double_t kminus)
 {
-  /*double_t norm_w = (w / Wmax_) - (alpha_ * lambda_ * std::pow(w/Wmax_, mu_minus_) * kminus);
-  return norm_w > 0.0 ? norm_w * Wmax_ : 0.0;*/
-  double t_w_new=w-alpha_ * lambda_*kminus;
-  if (0.0>t_w_new)
-  {
-    return 0.0;
-  }
-  else
-  {
-    return t_w_new;
-  }
+  double_t norm_w = (w / Wmax_) - (alpha_ * lambda_ * std::pow(w/Wmax_, mu_minus_) * kminus);
+  return norm_w > 0.0 ? norm_w * Wmax_ : 0.0;
 }
 
 
@@ -248,8 +230,8 @@ void STDPPoisson::send(Event& e, double_t t_lastspike, const CommonSynapseProper
     start++;
     if (minus_dt == 0)
       continue;
-    //weight_ = facilitate_(weight_, Kplus_ * std::exp(minus_dt / tau_plus_));
-    weight_ = facilitate_(weight_,  std::exp(minus_dt / tau_plus_));
+    weight_ = facilitate_(weight_, Kplus_ * std::exp(minus_dt / tau_plus_));
+    //weight_ = facilitate_(weight_,  std::exp(minus_dt / tau_plus_));
   }
   /*if (post_first_spike!=finish)
   {
@@ -257,17 +239,17 @@ void STDPPoisson::send(Event& e, double_t t_lastspike, const CommonSynapseProper
     if (minus_dt != 0)
       weight_ = facilitate_(weight_, std::exp(minus_dt / tau_plus_));
   }*/
-  if (post_last_spike!=finish)
+  /*if (post_last_spike!=finish)
   {
     minus_dt = -t_spike + (post_last_spike->t_ + dendritic_delay);
     if (minus_dt != 0)
       weight_ = depress_(weight_, std::exp((minus_dt) / tau_plus_));
-  }
+  }*/
   //
   //
 
   //depression due to new pre-synaptic spike
-  //weight_ = depress_(weight_, target_->get_K_value(t_spike - dendritic_delay));
+  weight_ = depress_(weight_, target_->get_K_value(t_spike - dendritic_delay));
   //weight_ = depress_(weight_, target_->get_K_value(t_spike - dendritic_delay));
   //tsodyk
   

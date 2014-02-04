@@ -253,20 +253,17 @@ void nest::iaf_psc_exp::update(const Time &origin, const long_t from, const long
 {
   assert(to >= 0 && (delay) from < Scheduler::get_min_delay());
   assert(from < to);
-  const double_t h = Time::get_resolution().get_ms(); //tmp
-  double_t t=origin.get_ms(); //tmp
+
   // evolve from timestep 'from' to timestep 'to' with steps of h each
   for ( long_t lag = from; lag < to; ++lag )
   {	
     if ( S_.r_ref_ == 0 ) // neuron not refractory, so evolve V
-      S_.V_m_ = S_.V_m_*V_.P22_ + S_.i_syn_ex_*V_.P21ex_ + S_.i_syn_in_*V_.P21in_ + (P_.I_e_+S_.i_0_)*V_.P20_;
+      S_.V_m_ = S_.V_m_*V_.P22_ + S_.i_syn_ex_*V_.P21ex_ + S_.i_syn_in_*V_.P21in_ + (P_.I_e_+S_.i_0_)*V_.P20_; 
     else 
       --S_.r_ref_; // neuron is absolute refractory
 
     // exponential decaying PSCs
-    std::cout<<S_.V_m_<<"\t";//tmp
-    std::cout<<t+h*lag<<" exc("<<S_.i_syn_ex_*V_.P21ex_<<")\t";//tmp
-    std::cout<<t+h*lag<<" inh("<<S_.i_syn_in_*V_.P21in_<<")\t";//tmp
+    //std::cout<<"I_ex="<<S_.i_syn_ex_<<"\t"<<"V="<<S_.i_syn_ex_*V_.P21ex_<<"\t";
     S_.i_syn_ex_ *= V_.P11ex_;
     S_.i_syn_in_ *= V_.P11in_;
 
