@@ -213,17 +213,19 @@ nest::iaf_neuron_dif_alpha::iaf_neuron_dif_alpha(const iaf_neuron_dif_alpha& n)
   //r<<++nest::iaf_neuron_dif_alpha::sh_gl;
   //id_gl=nest::iaf_neuron_dif_alpha::sh_gl;
   std::string s_directory_learn_set_desired="/home/neuron/animat_work/learn_set/desired/neuron_"+r.str()+".txt";
-  std::string s_directory_learn_set_input="/home/neuron/animat_work/learn_set/input/neuron_";
+  //std::string s_directory_learn_set_input="/home/neuron/animat_work/learn_set/input/neuron_";
   //std::cout<<"s_tmp "<<s_tmp<<"\n";
   behav_learning_loc->read_learn_set_desired_from_file(s_directory_learn_set_desired);//perepisat vizov
-   behav_learning_loc->read_learn_set_input_from_files(s_directory_learn_set_input,iaf_neuron_dif_alpha::id_gl); //ano
+   //behav_learning_loc->read_learn_set_input_from_files(s_directory_learn_set_input,iaf_neuron_dif_alpha::id_gl); //ano
   /*learn function*/
 }
 
 void nest::iaf_neuron_dif_alpha::set_learning_variables(DictionaryDatum &d,double t,std::vector<double > &currents)//prepare before learning
 {
+	/*std::vector<double > currents2(currents);
+	//
 	double learn_time=t-behav_learning_loc->get_bias();
-	std::cout<<"learn lime "<<learn_time<<"\n";
+	std::cout<<"learn time "<<learn_time<<"\n";
 	int number_prim=behav_learning_loc->get_number_prim();
 	std::map<std::pair<index,index>,struct_iaf_neuron_dif_alpha >::iterator it=behav_loc->val.begin();
 	int number_of_synap=0;
@@ -239,13 +241,32 @@ void nest::iaf_neuron_dif_alpha::set_learning_variables(DictionaryDatum &d,doubl
 		if (t_spike>0.0)
 		{
 		  sum_inter+=alpha_function(learn_time-t_spike,t_tau_a);
+		  std::cout<<"1 w learn_time-t_spike="<<learn_time-t_spike<<"\n";
 		  //sum_inter+=heaviside(learn_time-t_spike);
 		  //sum_inter+=gauss(learn_time-t_spike,P_.tau_a_,7.2);
 		}
 	    }
-	    currents.push_back(sum_inter);
+	    currents.push_back(sum_inter);// compare with current calculating another ways
 	    it++;
 	    number_of_synap++;
+	}*/
+	
+	// it's neccessary to do loop for s
+	std::map<std::pair<index,index>,struct_iaf_neuron_dif_alpha >::iterator it=behav_loc->val.begin();
+	std::cout<<"size current="<<behav_loc->val.size()<<"\n";//change
+	while (it!=behav_loc->val.end())
+	{
+	    double sum_inter=0;
+	    double t_spike;
+	    double t_tau_a=(*it).second.tau_a;
+	    for (int i=0;i!=(*it).second.base_val.v_time_spike_times.size();i++)
+	    {
+		t_spike=(*it).second.base_val.v_time_spike_times[i];
+		sum_inter+=alpha_function(t-t_spike,t_tau_a);
+		//std::cout<<"2 w t-t_spike="<<t-t_spike<<"\n";
+	    }
+	    currents.push_back(sum_inter);// compare with current calculating another ways
+	    it++;
 	}
 }
 
@@ -337,7 +358,7 @@ void nest::iaf_neuron_dif_alpha::update(Time const & origin, const long_t from, 
   updateValue<bool>((*d), names::trig_learn_oper,trig_learn_oper_);
   if (trig_seal_)
   {
-    //std::cout<<"trig_seal\n";
+    std::cout<<"trig_seal\n";
     //std::cout<<"grad "<<"\n";
     trig_seal_=0;
     def<bool>((*d), names::trig_seal, trig_seal_);
@@ -388,11 +409,10 @@ void nest::iaf_neuron_dif_alpha::update(Time const & origin, const long_t from, 
 		SpikeEvent se;
 		//se.set_weight(-1.0);
 		network()->send(*this, se, lag);
-		clear_spike_history();
+		//clear_spike_history();
 		//ok=false;
 	}
-	std::cout<<"opop2"<<"\n";
-	if (S_.v_ >= P_.V_th_)
+	else if (S_.v_ >= P_.V_th_)
 	{
 		//std::cout<<"spike_time"<<"\n";
 		//clean spike history
@@ -402,7 +422,7 @@ void nest::iaf_neuron_dif_alpha::update(Time const & origin, const long_t from, 
 		SpikeEvent se;
 		//se.set_weight(-1.0);
 		network()->send(*this, se, lag);
- 		clear_spike_history();
+ 		//clear_spike_history();
 		//ok=false;
 	}
 	//B_.spikes_.get_value(lag);// Need for clean buffer. It's necessary for working log-device wrapper.
@@ -446,7 +466,7 @@ void nest::iaf_neuron_dif_alpha::update(Time const & origin, const long_t from, 
 		SpikeEvent se;
 		//se.set_weight(-1.0);
 		network()->send(*this, se, lag);
- 		clear_spike_history();
+ 		//clear_spike_history();
 		//ok=false;
 	}
      

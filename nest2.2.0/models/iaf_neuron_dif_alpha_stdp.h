@@ -202,6 +202,8 @@ Receives: SpikeEvent, CurrentEvent, DataLoggingRequest
 
     // Access functions for UniversalDataLogger -------------------------------
     struct Variables_ { 
+     double_t C1; //const 1 fot integration
+     double_t C2; //const 2 for integration
      int_t    RefractoryCounts_;  //!< refractory time in steps
      librandom::RngPtr rng_; // random number generator of my own thread
    };

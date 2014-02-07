@@ -200,7 +200,8 @@ void Dif_alpha_stdp::send(Event& e, double_t t_lastspike, const CommonSynapsePro
   if (post_last_spike!=finish)
   {
     minus_dt = -t_spike + (post_last_spike->t_ + dendritic_delay);
-    if ((minus_dt != 0)&&(std::abs(minus_dt)<2.0))
+    //if ((minus_dt != 0)&&(std::abs(minus_dt)>2.0)&&(std::abs(minus_dt)<3*20.0))
+    if ((minus_dt != 0)&&(std::abs(minus_dt)>2.0))
       //weight_ = depress_(weight_, std::exp((minus_dt) / 20.0));
       weight_ = depress_(weight_, std::exp(minus_dt/ tau_minus_));
       //weight_ = depress_(weight_, std::exp((minus_dt) / 20.0));

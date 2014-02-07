@@ -302,7 +302,7 @@ void iaf_neuron_dif_alpha::set_status(const DictionaryDatum &d)
 inline
 double iaf_neuron_dif_alpha::heaviside (double t)
 {
-	if (t>0)
+	if (t>=0)
 	{
 		return 1.0;
 	}
