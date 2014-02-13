@@ -225,7 +225,7 @@ void nest::iaf_neuron_alpha_online::set_learning_variables(DictionaryDatum &d,do
 	double learn_time=t-behav_learning_loc->get_bias();
 	std::cout<<"learn lime "<<learn_time<<"\n";
 	int number_prim=behav_learning_loc->get_number_prim();
-	std::map<std::pair<index,index>,struct_iaf_neuron_dif_alpha >::iterator it=behav_loc->val.begin();
+	std::map<std::pair<int,std::pair<index,index> >,struct_iaf_neuron_dif_alpha >::iterator it=behav_loc->val.begin();
 	int number_of_synap=0;
 	while (it!=behav_loc->val.end())
 	{

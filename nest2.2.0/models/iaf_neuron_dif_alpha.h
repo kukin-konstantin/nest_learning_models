@@ -327,7 +327,7 @@ double iaf_neuron_dif_alpha::gauss(double t,double mu,double sigma)
 inline
 void iaf_neuron_dif_alpha::clear_spike_history()
 {
-  std::map<std::pair<index,index>,struct_iaf_neuron_dif_alpha >::iterator it=behav_loc->val.begin();
+  std::map<std::pair<int,std::pair<index,index> >,struct_iaf_neuron_dif_alpha >::iterator it=behav_loc->val.begin();
   while (it!=behav_loc->val.end())
   {
     (*it).second.base_val.v_time_spike_times.clear();
@@ -339,7 +339,7 @@ inline
 double iaf_neuron_dif_alpha::get_sum_I(double_t t)
 {
 	/*заменить внизу:*/
-	std::map<std::pair<index,index>,struct_iaf_neuron_dif_alpha >::iterator it=behav_loc->val.begin();
+	std::map<std::pair<int,std::pair<index,index> >,struct_iaf_neuron_dif_alpha >::iterator it=behav_loc->val.begin();
 	double sum=0;
 	while (it!=behav_loc->val.end())
 	{

@@ -13,7 +13,8 @@ namespace nest
   Dif_alpha_connection::Dif_alpha_connection() :
     ConnectionHetWD(),
     tau_a_(10.0),
-    t_count(0.0)
+    t_count(0.0),
+    local_id_synapse(0.0)
   {
 	  //std::cout<<"sm born "<<"\n";
  	  //target_->behav;
@@ -31,6 +32,7 @@ namespace nest
   {
     tau_a_=rhs.tau_a_;
     t_count=rhs.t_count;
+    local_id_synapse=rhs.local_id_synapse;
     //std::cout<<"sm born by copy"<<"\n";
   }
   
@@ -39,12 +41,16 @@ namespace nest
   {
     //std::cout<<"get_status "<<"example"<<"\n";
     double_t t_weight;
-    target_->behav->get_parametrs(id_target,id_source,t_weight);
+    DictionaryDatum *d2 = new DictionaryDatum(new Dictionary); 
+    def<double>((*d2),"local_id_synapse",local_id_synapse);
+    target_->behav->get_parametrs(id_target,id_source,t_weight,(*d2));
+    delete d2;
     //weight_=t_weight;
     //ConnectionHetWD::get_status(d);
     def<double_t>(d, names::weight, t_weight);
     def<double_t>(d, names::delay, Time(Time::step(delay_)).get_ms());
     def<double_t>(d, names::tau_a, tau_a_);
+    def<double_t>(d, names::local_id_synapse, local_id_synapse);
     
   }
   
@@ -53,6 +59,7 @@ namespace nest
     ConnectionHetWD::set_status(d, cm);
     //std::cout<<"set_status "<<"example 1"<<"\n";
     updateValue<double_t>(d, names::tau_a, tau_a_);
+    updateValue<double_t>(d,names::local_id_synapse,local_id_synapse);
   }
 
   /**
@@ -64,6 +71,7 @@ namespace nest
     ConnectionHetWD::set_status(d, p, cm);
     //std::cout<<"set_status "<<"example 2"<<"\n";
     set_property<double_t>(d, "tau_as", p, tau_a_);
+    set_property<double_t>(d,"local_id_synapses",p,local_id_synapse);
   }
 
   void Dif_alpha_connection::initialize_property_arrays(DictionaryDatum & d) const
@@ -71,6 +79,7 @@ namespace nest
     ConnectionHetWD::initialize_property_arrays(d);
 
     initialize_property_array(d, "tau_as");
+    initialize_property_array(d,"local_id_synapses");
   }
 
   /**
@@ -82,6 +91,7 @@ namespace nest
     ConnectionHetWD::append_properties(d);
 
     append_property<double_t>(d, "tau_as", tau_a_);
+    append_property<double_t>(d,"local_id_synapses",local_id_synapse);
   }
 
 } // of namespace nest

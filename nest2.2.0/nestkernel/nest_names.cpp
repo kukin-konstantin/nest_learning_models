@@ -345,6 +345,7 @@ namespace nest
     const Name k("k");
     const Name potential("potential");
     //const Name gamma("gamma");
-    
+    //Dif_alpha_connection
+    const Name local_id_synapse("local_id_synapse");
   }
 }

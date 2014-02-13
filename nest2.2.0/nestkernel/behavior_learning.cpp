@@ -247,7 +247,7 @@ bool nest::Gradient_descent_behavior::learn(Behavior_node *behav,DictionaryDatum
   {
     //std::cout<<"is spike "<<"\n";
     //std::map<std::pair<index,index>,struct_iaf_neuron_sm >::iterator it=behav_loc->val.begin();
-    std::map<std::pair<index,index>,struct_iaf_neuron_dif_alpha >::iterator it=behav_loc->val.begin();
+    std::map<std::pair<int,std::pair<index,index> >,struct_iaf_neuron_dif_alpha >::iterator it=behav_loc->val.begin();
     int sh=0;
     while (it!=behav_loc->val.end())
     {

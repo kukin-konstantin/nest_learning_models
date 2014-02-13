@@ -89,6 +89,7 @@ class Dif_alpha_connection : public ConnectionHetWD
    
   double_t tau_a_;		 //!< Reversal potential in mV
   int t_count;
+  double_t local_id_synapse;
 };
 
 
@@ -108,8 +109,14 @@ void Dif_alpha_connection::send(Event& e, double_t t_lastspike, const CommonSyna
 {
   if (t_count==0)
   {
-    target_->behav->set_variables(id_target,id_source,tau_a_,weight_,weight_); //modif
+    DictionaryDatum *d = new DictionaryDatum(new Dictionary);
+    def<double>((*d), "weight",weight_);
+    def<double>((*d), "tau_a",tau_a_); 
+    def<double>((*d),"local_id_synapse",local_id_synapse);
+    target_->behav->set_variables(id_target,id_source,(*d));
+    //modif
     //std::cout<<"YYYYYYYYYYY"<<"\n";
+    delete d;
     t_count++;
   }
   // synapse STDP depressing/facilitation dynamics
@@ -122,7 +129,7 @@ void Dif_alpha_connection::send(Event& e, double_t t_lastspike, const CommonSyna
   
   
   //depression due to new pre-synaptic spike
-  target_->behav->add_spike_time(id_target,id_source,e.get_stamp().get_ms());
+  target_->behav->add_spike_time(id_target,id_source,int(local_id_synapse),e.get_stamp().get_ms());
   
   e.set_receiver(*target_);
   e.set_weight(weight_ );

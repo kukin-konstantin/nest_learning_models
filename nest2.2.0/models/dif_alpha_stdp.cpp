@@ -63,7 +63,7 @@ namespace nest
   {
     //std::cout<<"get_status "<<"example"<<"\n";
     double_t t_weight;
-    target_->behav->get_parametrs(id_target,id_source,t_weight);
+    target_->behav->get_parametrs(id_target,id_source,t_weight,(*d));
     //weight_=t_weight;
     //ConnectionHetWD::get_status(d);
     def<double_t>(d, names::weight, t_weight);

@@ -368,7 +368,8 @@ namespace nest
     extern const Name k;
     extern const Name potential;
     //extern const Name gamma;
-    
+    //Dif_alpha_connection
+    extern const Name local_id_synapse;
   }
 }
 

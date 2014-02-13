@@ -102,12 +102,16 @@ void SMConnection::send(Event& e, double_t t_lastspike, const CommonSynapsePrope
   //std::cout<<"weight in synapse "<<e.get_weight()<<"\n";
   if (t_count==0)
   {
-    target_->behav->set_variables(id_target,id_source,g_,weight_,E_); //modif
+    DictionaryDatum *d = new DictionaryDatum(new Dictionary);
+    def<double>((*d), "weight",weight_);
+    def<double>((*d), "E_rev",E_);
+    def<double>((*d), "g",g_);
+    target_->behav->set_variables(id_target,id_source,(*d)); //modif
     //std::cout<<"YYYYYYYYYYY"<<"\n";
     t_count++;
   }
   
-  target_->behav->add_spike_time(id_target,id_source,e.get_stamp().get_ms());
+  target_->behav->add_spike_time(id_target,id_source,0,e.get_stamp().get_ms());
   
   e.set_receiver(*target_);
   e.set_weight( g_*weight_ );

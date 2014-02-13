@@ -252,7 +252,7 @@ void nest::iaf_neuron_dif_alpha::set_learning_variables(DictionaryDatum &d,doubl
 	}*/
 	
 	// it's neccessary to do loop for s
-	std::map<std::pair<index,index>,struct_iaf_neuron_dif_alpha >::iterator it=behav_loc->val.begin();
+	std::map<std::pair<int,std::pair<index,index> >,struct_iaf_neuron_dif_alpha >::iterator it=behav_loc->val.begin();
 	std::cout<<"size current="<<behav_loc->val.size()<<"\n";//change
 	while (it!=behav_loc->val.end())
 	{
@@ -365,6 +365,7 @@ void nest::iaf_neuron_dif_alpha::update(Time const & origin, const long_t from, 
     behav_learning_loc->reset_iterator_desired();
     behav_learning_loc->set((*d));
     clear_spike_history();
+    S_.I_=0;
   }
   if (trig_learn_oper_)
   {
@@ -386,7 +387,7 @@ void nest::iaf_neuron_dif_alpha::update(Time const & origin, const long_t from, 
   
     
 	
-	//std::cout<<"index "<<this->get_gid()<<" to "<<to<<"\t"<<"lag "<<lag<<"\t"<<"h "<<h<<"\t time"<<t+h*lag<<"\n";
+	std::cout<<"index "<<this->get_gid()<<" to "<<to<<"\t"<<"lag "<<lag<<"\t"<<"h "<<h<<"\t time"<<t+h*lag<<"\t"<<" S_.I_="<<S_.I_<<"\n";
 	//behav_learning_loc->get_learning_vector(P_.number_prim_)
 	//calculate currents
 	//add value to t_parametrs
@@ -446,14 +447,15 @@ void nest::iaf_neuron_dif_alpha::update(Time const & origin, const long_t from, 
 	  //S_.v_ +=h*( ((P_.E_L_-v_old)/P_.Tau_) + (P_.I_e_/P_.C_) + (S_.I_/P_.C_) )+B_.spikes_.get_value(lag);
 	  S_.v_ +=h*( ((P_.E_L_-v_old)/P_.Tau_) + (P_.I_e_/P_.C_) + (S_.I_/P_.C_) );
 	  //std::cout<<"fun S_.I_="<<S_.I_<<"\t"<<"S_.v_="<<S_.v_<<"\n";
+	  std::cout<<"fun S_.I_="<<S_.I_<<"\n";
 	}
 	else // neuron is absolute refractory
 	  --S_.r_;
   
     
 	// threshold crossing
-	//std::cout<<"index "<<this->get_gid()<<" to "<<to<<"\t"<<"lag "<<lag<<"\t"<<"h "<<h<<"\n";
-	//std::cout<<S_.v_<<"\t";
+	std::cout<<"index "<<this->get_gid()<<" to "<<to<<"\t"<<"lag "<<lag<<"\t"<<"h "<<h<<"\t";
+	std::cout<<S_.v_<<"\t"<<"\n";
 	//if (emission_procedure(S_.v_))
 	if (S_.v_ >= P_.V_th_)
 	{
