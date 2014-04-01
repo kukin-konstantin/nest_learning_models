@@ -204,10 +204,7 @@ void nest::iaf_neuron_dif_alpha_stdp::calibrate()
   B_.logger_.init();
   V_.rng_ = net_->get_rng(get_thread());
   V_.RefractoryCounts_ = Time(Time::ms(P_.TauR_)).get_steps();
-  assert(V_.RefractoryCounts_ >= 0);
-  const double_t h = Time::get_resolution().get_ms();
-  V_.C1=std::exp(-h/P_.Tau_);
-  V_.C2=(P_.Tau_/P_.C_)*(1-V_.C1);
+  assert(V_.RefractoryCounts_ >= 0); 
 }
 
 /* ---------------------------------------------------------------- 
@@ -276,8 +273,7 @@ void nest::iaf_neuron_dif_alpha_stdp::stdp_procedure(double time_post_spike)
 		double t_weight=(*it).second.base_val.weight;
 		if (t_weight>=0.0)
 		{
-		  //if ((std::abs(minus_dt)>2.0))
-		  if ((std::abs(minus_dt)>2.0)&&(std::abs(minus_dt)<3*20.0))
+		  if (std::abs(minus_dt)<2.0)
 		  {
 		  (*it).second.base_val.weight=facilitate(t_weight,std::exp(minus_dt / t_tau_plus),t_lambda,t_Wmax);
 		  }
@@ -298,39 +294,45 @@ void nest::iaf_neuron_dif_alpha_stdp::update(Time const & origin, const long_t f
   //std::cout<<S_.v_<<"\t";
   for ( long_t lag = from ; lag < to ; ++lag )
    {
-     //std::cout<<"S_.v="<<S_.v_<<"\t";
-     //std::cout<<"S_.I="<<S_.I_<<"\t";
-     if (S_.r_!=0) // neuron is absolute refractory
-     {
-       --S_.r_;
-     }
-     else if ( S_.r_ == 0 ) // neuron not refractory
-     {
+      if ( S_.r_ == 0 ) // neuron not refractory
+      {
 	  v_old = S_.v_;
-	  if (S_.v_ >= P_.V_th_)
-	  {
+	  //S_.v_ +=h*( ((P_.E_L_-v_old)/P_.Tau_) + (P_.I_e_/P_.C_) + (S_.I_/P_.C_) )+B_.spikes_.get_value(lag);
+	  S_.v_ +=h*( ((P_.E_L_-v_old)/P_.Tau_) + (P_.I_e_/P_.C_) + (S_.I_/P_.C_)) ;
+	  //std::cout<<"fun S_.I_="<<S_.I_<<"\t"<<"delta_V="<<h*(S_.I_/P_.C_)<<"\n";
+       }
+       else // neuron is absolute refractory
+	 --S_.r_;
+  
+    
+	// threshold crossing
+	//std::cout<<"index "<<this->get_gid()<<" to "<<to<<"\t"<<"lag "<<lag<<"\t"<<"h "<<h<<"\n";
+	//if (emission_procedure(S_.v_))
+	if (S_.v_ >= P_.V_th_)
+	{
 		stdp_procedure(t+h*lag);
+		//std::cout<<"spike_time"<<"\n";
+		//clean spike history
 		S_.r_ = V_.RefractoryCounts_;
 		S_.v_= P_.V_reset_;   
 		set_spiketime(Time::step(origin.get_steps()+lag)); // change -1
+		//std::cout<<"fun time spike from neuron "<<Time::step(origin.get_steps()+lag)<<"\n";// change -1
 		SpikeEvent se;
+		//se.set_weight(-1.0);
 		network()->send(*this, se, lag);
  		clear_spike_history(t+h*lag);
-	  }
-	  else
-	  {
-	    //S_.v_ +=h*( ((P_.E_L_-v_old)/P_.Tau_) + (P_.I_e_/P_.C_) + (S_.I_/P_.C_)) ;
-	    S_.v_=V_.C1*v_old+V_.C2*(P_.I_e_+S_.I_);
-	    S_.I_=B_.currents_.get_value(lag);
-	    S_.I_ =S_.I_+get_sum_I(t+h*lag);
-	    B_.logger_.record_data(origin.get_steps()+lag);
-	  }
-     }
-	 
+		//ok=false;
+	}
      
+	//B_.spikes_.get_value(lag);// Need for clean buffer. It's necessary for working log-device wrapper.
+	S_.I_=B_.currents_.get_value(lag);
+	
+	S_.I_ =S_.I_+get_sum_I(t+h*lag); // надо делать инач
+	//std::cout<<"fun S_.I_="<<S_.I_<<"\n\n";
+	// voltage logging
+	B_.logger_.record_data(origin.get_steps()+lag);
 	
       }
-      //S_.I_=0;//change
       //std::cout<<"\n"; // delete after use
 }                           
                      

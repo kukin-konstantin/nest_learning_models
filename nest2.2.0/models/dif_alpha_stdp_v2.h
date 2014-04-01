@@ -172,9 +172,7 @@ void Dif_alpha_stdp::send(Event& e, double_t t_lastspike, const CommonSynapsePro
     t_count++;
   }
   double_t t_weight;
-  DictionaryDatum *d3 = new DictionaryDatum(new Dictionary);
-  target_->behav->get_parametrs(id_target,id_source,t_weight,(*d3));
-  delete d3;
+  target_->behav->get_parametrs(id_target,id_source,t_weight);
   weight_ =t_weight;
   
   double_t t_spike = e.get_stamp().get_ms();
@@ -202,8 +200,7 @@ void Dif_alpha_stdp::send(Event& e, double_t t_lastspike, const CommonSynapsePro
   if (post_last_spike!=finish)
   {
     minus_dt = -t_spike + (post_last_spike->t_ + dendritic_delay);
-    //if ((minus_dt != 0)&&(std::abs(minus_dt)>2.0))
-    if ((minus_dt != 0)&&(std::abs(minus_dt)>2.0)&&(std::abs(minus_dt)<3*20.0))
+    if ((minus_dt != 0)&&(std::abs(minus_dt)<2.0))
       //weight_ = depress_(weight_, std::exp((minus_dt) / 20.0));
       weight_ = depress_(weight_, std::exp(minus_dt/ tau_minus_));
       //weight_ = depress_(weight_, std::exp((minus_dt) / 20.0));
@@ -227,15 +224,8 @@ void Dif_alpha_stdp::send(Event& e, double_t t_lastspike, const CommonSynapsePro
   //depression due to new pre-synaptic spike
   double_t dynamic_weight=weight_*u_*R;
   //std::cout<<"id_source="<<id_source<<" dynamic_weight="<<dynamic_weight<<"\n";
-  target_->behav->add_spike_time(id_target,id_source,0,e.get_stamp().get_ms());
-  DictionaryDatum *d2 = new DictionaryDatum(new Dictionary);
-  def<double>((*d2), "weight",weight_);
-  def<double>((*d2), "tau_a",tau_a_);
-  //std::cout<<"stdp id_target="<<id_target<<"\t"<<"id_source="<<id_source<<"\t";
-  //std::cout<<"dynamic_weight_in_synapse="<<dynamic_weight<<"\n";
-  def<double>((*d2),"dynamic_weight",dynamic_weight);
-  target_->behav->set_variables(id_target,id_source,(*d2));
-  delete d2;
+  target_->behav->add_spike_time(id_target,id_source,e.get_stamp().get_ms());
+  target_->behav->set_variables(id_target,id_source,tau_a_,weight_,dynamic_weight);
   e.set_receiver(*target_);
   e.set_weight(weight_*u_*R);
   //e.set_weight(weight_ );

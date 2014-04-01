@@ -202,8 +202,6 @@ Receives: SpikeEvent, CurrentEvent, DataLoggingRequest
 
     // Access functions for UniversalDataLogger -------------------------------
     struct Variables_ { 
-     double_t C1; //const 1 fot integration
-     double_t C2; //const 2 for integration
      int_t    RefractoryCounts_;  //!< refractory time in steps
      librandom::RngPtr rng_; // random number generator of my own thread
    };
@@ -387,8 +385,7 @@ double iaf_neuron_dif_alpha_stdp::get_sum_I(double t)
 		  sum_inter+=alpha_function(t-t_spike,t_tau_a);
 		//}
 	    }
-	    //std::cout<<"sin="<<sum_inter<<"\t";
-	    //std::cout<<"sum_out="<<(*it).second.dynamic_weight*sum_inter<<"\t";
+	    //std::cout<<"sin="<<sum_inter<<" ";
 	    //sum+=(*it).second.base_val.weight*sum_inter;
 	    sum+=(*it).second.dynamic_weight*sum_inter;
 	    it++;

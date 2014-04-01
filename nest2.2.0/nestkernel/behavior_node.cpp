@@ -81,11 +81,11 @@ void nest::Iaf_neuron_dif_alpha_behavior::clear()
 void nest::Iaf_neuron_dif_alpha_stdp_behavior::set_variables(index t_id_target,index t_id_source,const DictionaryDatum& d)
 {
 	//struct_iaf_neuron_dif_alpha_stdp tmp(t_weight,t_tau_a,20.0,1.0,100.0); //no_good
-	double t_weight,t_E_rev;
+	double t_weight,t_weight_dynamic;
 	updateValue<double>(d, "weight",t_weight);
-	updateValue<double>(d, "E_rev",t_E_rev);
+	updateValue<double>(d, "dynamic_weight",t_weight_dynamic);
 	val[std::pair<index,index>(t_id_target,t_id_source)].base_val.weight=t_weight;
-	val[std::pair<index,index>(t_id_target,t_id_source)].dynamic_weight=t_E_rev;
+	val[std::pair<index,index>(t_id_target,t_id_source)].dynamic_weight=t_weight_dynamic;
 	//tmp
 }
 
