@@ -347,5 +347,7 @@ namespace nest
     //const Name gamma("gamma");
     //Dif_alpha_connection
     const Name local_id_synapse("local_id_synapse");
+    const Name time_list("time_list");
+    const Name switch_work_mode("switch_work_mode");
   }
 }

@@ -47,7 +47,8 @@ nest::iaf_neuron_dif_alpha_stdp::Parameters_::Parameters_()
     E_L_     (-70.0    ),  // mV
     V_reset_ (0.0),
     V_th_  (-54.0),  // mV
-    I_e_    (  0.0    )   // pA
+    I_e_    (  0.0    ),   // pA
+    switch_work_mode_(false)
     //n_in_(0)
     
 {}
@@ -57,7 +58,9 @@ nest::iaf_neuron_dif_alpha_stdp::State_::State_()
   v_(-70.0),
     I_(0.0),  
     r_ (0)
-{}
+{
+  time_list_.clear();
+}
 
 nest::iaf_neuron_dif_alpha_stdp::~iaf_neuron_dif_alpha_stdp()
 {
@@ -95,6 +98,7 @@ void nest::iaf_neuron_dif_alpha_stdp::Parameters_::get(DictionaryDatum &d) const
   def<double>(d, names::C_m, C_);
   def<double>(d, names::tau_m, Tau_);
   def<double>(d, names::t_ref, TauR_);
+  def<double>(d,names::switch_work_mode,switch_work_mode_);
   //dobavit peremennie obuchenia
 }
 
@@ -108,6 +112,7 @@ void nest::iaf_neuron_dif_alpha_stdp::Parameters_::set(const DictionaryDatum& d)
   updateValue<double>(d, names::C_m, C_);
   updateValue<double>(d, names::tau_m, Tau_);
   updateValue<double>(d, names::t_ref, TauR_);
+  updateValue<double>(d, names::switch_work_mode, switch_work_mode_);
   //dobavit peremennie obuchenia
   if ( C_ <= 0 )
     throw BadProperty("Capacitance must be strictly positive.");
@@ -119,11 +124,17 @@ void nest::iaf_neuron_dif_alpha_stdp::Parameters_::set(const DictionaryDatum& d)
 void nest::iaf_neuron_dif_alpha_stdp::State_::get(DictionaryDatum &d, const Parameters_& p) const
 {
   def<double>(d, names::V_m, v_); // Membrane potential
+  
+  ArrayDatum time_list_ad(time_list_);
+  def<ArrayDatum>(d,"time_list", time_list_ad);
 }
 
 void nest::iaf_neuron_dif_alpha_stdp::State_::set(const DictionaryDatum& d, const Parameters_& p)
 {
   updateValue<double>(d, names::V_m, v_);
+  
+  std::vector<double> tau_tmp;
+  updateValue<std::vector<double> >(d, "time_list", time_list_);
 }
 
 
@@ -263,12 +274,17 @@ double nest::iaf_neuron_dif_alpha_stdp::facilitate(double w, double kplus,double
 void nest::iaf_neuron_dif_alpha_stdp::stdp_procedure(double time_post_spike)
 {
   std::map<std::pair<index,index>,struct_iaf_neuron_dif_alpha_stdp>::iterator it=behav_loc->val.begin();
+        //std::cout<<"time_post_spike="<<time_post_spike<<"\n";//rubbish
 	while (it!=behav_loc->val.end())
 	{
 	    double t_spike;
 	    double t_Wmax=(*it).second.Wmax;
 	    double t_lambda=(*it).second.lambda;
 	    double t_tau_plus=(*it).second.tau_plus;
+	    /*if (!((*it).second.base_val.v_time_spike_times.empty()))//rubbish
+	    {
+	      std::cout<<"Wmax="<<t_Wmax<<"\t";//rubbish
+	    }*/
 	    for (int i=0;i!=(*it).second.base_val.v_time_spike_times.size();i++)
 	    {
 		t_spike=(*it).second.base_val.v_time_spike_times[i];
@@ -277,12 +293,17 @@ void nest::iaf_neuron_dif_alpha_stdp::stdp_procedure(double time_post_spike)
 		if (t_weight>=0.0)
 		{
 		  //if ((std::abs(minus_dt)>2.0))
+		  //std::cout<<"minus_dt="<<minus_dt<<"\t";//rubbish
 		  if ((std::abs(minus_dt)>2.0)&&(std::abs(minus_dt)<3*20.0))
 		  {
 		  (*it).second.base_val.weight=facilitate(t_weight,std::exp(minus_dt / t_tau_plus),t_lambda,t_Wmax);
 		  }
 		}
 	    }
+	    /*if (!((*it).second.base_val.v_time_spike_times.empty()))//rubbish
+	    {
+	      std::cout<<"\n\n";//rubbish
+	    }*/
 	    it++;
 	}
 }
@@ -292,14 +313,20 @@ void nest::iaf_neuron_dif_alpha_stdp::update(Time const & origin, const long_t f
   //bool ok=true;
   assert(to >= 0 && (delay) from < Scheduler::get_min_delay());
   assert(from < to);
-  const double_t h = Time::get_resolution().get_ms();
+  double h = Time::get_resolution().get_ms();
   double_t v_old;
-  double_t t=origin.get_ms();
+  double t=origin.get_ms();
+  //std::cout<<"t="<<t<<"\t";
   //std::cout<<S_.v_<<"\t";
+  //std::cout<<std::fixed<<std::setprecision(2);
   for ( long_t lag = from ; lag < to ; ++lag )
    {
-     //std::cout<<"S_.v="<<S_.v_<<"\t";
-     //std::cout<<"S_.I="<<S_.I_<<"\t";
+     std::cout<<"t="<<t<<"\t";
+     std::cout<<"h*lag="<<h*lag<<"\t";
+     double z=t+h*lag;
+     std::cout<<"z-t="<<z-t<<"\t";
+     //std::cout<<"before S_.v="<<S_.v_<<"\t";
+     //std::cout<<"before S_.I="<<S_.I_<<"\t";
      if (S_.r_!=0) // neuron is absolute refractory
      {
        --S_.r_;
@@ -307,7 +334,19 @@ void nest::iaf_neuron_dif_alpha_stdp::update(Time const & origin, const long_t f
      else if ( S_.r_ == 0 ) // neuron not refractory
      {
 	  v_old = S_.v_;
-	  if (S_.v_ >= P_.V_th_)
+	  bool b_spiking=false;
+	  if (P_.switch_work_mode_) //true - learning
+	  {
+	    b_spiking=true;
+	  }
+	  else
+	  {
+	    if (S_.v_ >= P_.V_th_)
+	    {
+	      b_spiking=true;
+	    }
+	  }
+	  if (b_spiking) //change there
 	  {
 		stdp_procedure(t+h*lag);
 		S_.r_ = V_.RefractoryCounts_;
@@ -321,14 +360,16 @@ void nest::iaf_neuron_dif_alpha_stdp::update(Time const & origin, const long_t f
 	  {
 	    //S_.v_ +=h*( ((P_.E_L_-v_old)/P_.Tau_) + (P_.I_e_/P_.C_) + (S_.I_/P_.C_)) ;
 	    S_.v_=V_.C1*v_old+V_.C2*(P_.I_e_+S_.I_);
-	    S_.I_=B_.currents_.get_value(lag);
-	    S_.I_ =S_.I_+get_sum_I(t+h*lag);
-	    B_.logger_.record_data(origin.get_steps()+lag);
+	    //std::cout<<"after S_.v="<<S_.v_<<"\t";
+	    
 	  }
      }
-	 
+     S_.I_=B_.currents_.get_value(lag);
+     S_.I_ =S_.I_+get_sum_I(t+h*lag);
+     //std::cout<<"after I="<<S_.I_<<"\t";
+     B_.logger_.record_data(origin.get_steps()+lag); 
      
-	
+	//std::cout<<"\n";
       }
       //S_.I_=0;//change
       //std::cout<<"\n"; // delete after use

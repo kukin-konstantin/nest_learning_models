@@ -159,6 +159,8 @@ Receives: SpikeEvent, CurrentEvent, DataLoggingRequest
       /** External current in pA */
       double_t I_e_;
       
+      bool switch_work_mode_;
+      
       Parameters_();  //!< Sets default parameter values
 
       void get(DictionaryDatum&) const;  //!< Store current values in dictionary
@@ -171,9 +173,10 @@ Receives: SpikeEvent, CurrentEvent, DataLoggingRequest
      * State variables of the model.
      */
     struct State_ {
-	  double_t     v_; // membrane potential
+      double_t     v_; // membrane potential
       double_t     I_; // input current
       
+      std::vector<double_t> time_list_;
       int_t    r_;  //!< number of refractory steps remaining
 
       State_();  //!< Default initialization

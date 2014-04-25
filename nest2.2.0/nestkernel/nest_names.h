@@ -370,6 +370,10 @@ namespace nest
     //extern const Name gamma;
     //Dif_alpha_connection
     extern const Name local_id_synapse;
+    
+    //dif_alpha_stdp
+    extern const Name time_list;
+    extern const Name switch_work_mode;
   }
 }
 
