@@ -219,7 +219,12 @@ double nest::Gradient_descent_behavior::lambda_der3(double potential)
 bool nest::Gradient_descent_behavior::learn(Behavior_node *behav,DictionaryDatum &d,std::vector<double > &currents)
 {
   //Iaf_neuron_sm_behavior* behav_loc= dynamic_cast<Iaf_neuron_sm_behavior *>(behav);
+  //std::cout<<"typeid behav="<<typeid(behav).name()<<"\t"<<behav<<"\n";
   Iaf_neuron_dif_alpha_behavior* behav_loc= dynamic_cast<Iaf_neuron_dif_alpha_behavior *>(behav);
+  //tr/*Iaf_neuron_dif_alpha_behavior* behav_loc= new(Iaf_neuron_dif_alpha_behavior);
+  //tr/* *behav_loc= *dynamic_cast<Iaf_neuron_dif_alpha_behavior *>(behav);
+  //std::cout<<"typeif behav_loc="<<typeid(behav_loc).name()<<"\t"<<behav_loc<<"\n";
+  //std::cout<<"typeif behav_second="<<typeid(behav).name()<<"\t"<<behav<<"\n";
   if (gradients.empty())
   {
     gradients.resize(currents.size());
@@ -232,14 +237,14 @@ bool nest::Gradient_descent_behavior::learn(Behavior_node *behav,DictionaryDatum
   double lambd_val=(this->*lambda)(u);
   double lambd_val_der=(this->*lambda_der)(u);
   double L=1.0-std::exp(-lambd_val*h);
-  std::cout<<"u="<<u<<"\t";
-  std::cout<<"lambd_val="<<lambd_val<<"\t";
-  std::cout<<"lambd_val_der="<<lambd_val_der<<"\t";
-  std::cout<<"std::exp "<<std::exp(-lambd_val*h)<<"\t";
-  std::cout<<"L="<<L<<"\t";
+  //*std::cout<<"u="<<u<<"\t";
+  //*std::cout<<"lambd_val="<<lambd_val<<"\t";
+  //*std::cout<<"lambd_val_der="<<lambd_val_der<<"\t";
+  //*std::cout<<"std::exp "<<std::exp(-lambd_val*h)<<"\t";
+  //*std::cout<<"L="<<L<<"\t";
   double learn_time=time-bias_;
   //std::cout<<"learn time s"<<learn_time<<"\n";
-  std::cout<<"number_prim_ "<<number_prim_<<"\n";
+  //*std::cout<<"number_prim_ "<<number_prim_<<"\n";
   std::vector<double > v_learn_desired=v_learn_set_desired[number_prim_];
   bool is_spike=is_desired_spike(learn_time,v_learn_desired);
   //std::cout<<"is_spike "<<is_spike<<"\n";
@@ -247,8 +252,9 @@ bool nest::Gradient_descent_behavior::learn(Behavior_node *behav,DictionaryDatum
   {
     //std::cout<<"is spike "<<"\n";
     //std::map<std::pair<index,index>,struct_iaf_neuron_sm >::iterator it=behav_loc->val.begin();
-    std::map<std::pair<int,std::pair<index,index> >,struct_iaf_neuron_dif_alpha >::iterator it=behav_loc->val.begin();
+     std::map<std::pair<int,std::pair<index,index> >,struct_iaf_neuron_dif_alpha >::iterator it=behav_loc->val.begin();
     int sh=0;
+     
     while (it!=behav_loc->val.end())
     {
       if (L<1e-7)//magical number
@@ -260,28 +266,32 @@ bool nest::Gradient_descent_behavior::learn(Behavior_node *behav,DictionaryDatum
       {
 	gradients[sh]-=((1.0-L)/L)*lambd_val_der*currents[sh];
       }
-      std::cout<< gradients[sh]<<"("<<currents[sh]<<")"<<"("<<(*it).second.base_val.weight;
+      //*std::cout<< gradients[sh]<<"("<<currents[sh]<<")"<<"("<<(*it).second.base_val.weight;
       //std::cout<<"bef_weig "<<(*it).second.base_val.weight<<"\t";
       //std::cout<<"s "<<gamma<<"\t"<<h<<"\t";
       (*it).second.base_val.weight-=gamma*gradients[sh]*h;
       //std::cout<<"after_weig "<<(*it).second.base_val.weight<<"\t";
-      std::cout<<"->"<<(*it).second.base_val.weight<<")"<<"\t";
+      //*std::cout<<"->"<<(*it).second.base_val.weight<<")"<<"\t";
       gradients[sh]=0;
       it++;
       sh++;
     }
+     
   }
   else
   {
-    std::cout<<"no spike ";
+    //*std::cout<<"no spike ";
     for (int i=0;i!=currents.size();i++)
     {
       gradients[i]+=lambd_val_der*currents[i];
-      std::cout<< gradients[i]<<"("<<currents[i]<<")"<<"\t";
+      //*std::cout<< gradients[i]<<"("<<currents[i]<<")"<<"\t";
     }
   }
-  std::cout<<"\n";
+  //*std::cout<<"\n";
   //std::cout<<"is_spike "<<is_spike<<"\n";
+  //tr/*delete behav_loc;
+  //std::cout<<"behav="<<behav<<"\n";
+  //std::cout<<"behav_loc="<<behav_loc<<"\n";
   return is_spike;
 }
 
@@ -328,6 +338,7 @@ bool nest::STDP_learning_behavior::learn(Behavior_node *behav,DictionaryDatum &d
   double learn_time=time-bias_;
   std::vector<double > v_learn_desired=v_learn_set_desired[number_prim_];
   bool is_spike=is_desired_spike(learn_time,v_learn_desired);
+  delete behav_loc;
   return is_spike;
 }
 

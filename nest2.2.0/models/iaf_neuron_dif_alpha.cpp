@@ -16,9 +16,12 @@
 
 #include <limits>
 
+
 /* ---------------------------------------------------------------- 
  * Recordables map
  * ---------------------------------------------------------------- */
+
+
 
 int nest::iaf_neuron_dif_alpha::id_gl=-1; //nebodimo dlya togochtobi numeracia neuronov nacinalas s edinici
 nest::RecordablesMap<nest::iaf_neuron_dif_alpha> nest::iaf_neuron_dif_alpha::recordablesMap_;
@@ -181,6 +184,7 @@ nest::iaf_neuron_dif_alpha::iaf_neuron_dif_alpha()
   DictionaryDatum *d = new DictionaryDatum(new Dictionary);
   //behav_learning=new STDP_learning_behavior((*d));
   behav_learning=new Gradient_descent_behavior((*d));
+  delete d;
   std::cout<<"non-copy iaf_neuron_dif_alpha::id_gl "<<iaf_neuron_dif_alpha::id_gl<<"\n"; 
   behav_loc= dynamic_cast<Iaf_neuron_dif_alpha_behavior *>(behav);
   //behav_learning_loc=dynamic_cast<STDP_learning_behavior *>(behav_learning);
@@ -199,6 +203,7 @@ nest::iaf_neuron_dif_alpha::iaf_neuron_dif_alpha(const iaf_neuron_dif_alpha& n)
   DictionaryDatum *d = new DictionaryDatum(new Dictionary);
   //behav_learning=new STDP_learning_behavior((*d));
   behav_learning=new Gradient_descent_behavior((*d));
+  delete d;
   //std::cout<<"iaf born by copy "<<"behav too"<<"\n"; 
   behav_loc= dynamic_cast<Iaf_neuron_dif_alpha_behavior *>(behav);
   //behav_learning_loc=dynamic_cast<STDP_learning_behavior *>(behav_learning);
@@ -253,7 +258,7 @@ void nest::iaf_neuron_dif_alpha::set_learning_variables(DictionaryDatum &d,doubl
 	
 	// it's neccessary to do loop for s
 	std::map<std::pair<int,std::pair<index,index> >,struct_iaf_neuron_dif_alpha >::iterator it=behav_loc->val.begin();
-	std::cout<<"size current="<<behav_loc->val.size()<<"\n";//change
+	//*std::cout<<"size current="<<behav_loc->val.size()<<"\n";//change
 	while (it!=behav_loc->val.end())
 	{
 	    double sum_inter=0;
@@ -358,7 +363,7 @@ void nest::iaf_neuron_dif_alpha::update(Time const & origin, const long_t from, 
   updateValue<bool>((*d), names::trig_learn_oper,trig_learn_oper_);
   if (trig_seal_)
   {
-    std::cout<<"trig_seal\n";
+    //*std::cout<<"trig_seal\n";
     //std::cout<<"grad "<<"\n";
     trig_seal_=0;
     def<bool>((*d), names::trig_seal, trig_seal_);
@@ -387,7 +392,7 @@ void nest::iaf_neuron_dif_alpha::update(Time const & origin, const long_t from, 
   
     
 	
-	std::cout<<"index "<<this->get_gid()<<" to "<<to<<"\t"<<"lag "<<lag<<"\t"<<"h "<<h<<"\t time"<<t+h*lag<<"\t"<<" S_.I_="<<S_.I_<<"\n";
+	//*std::cout<<"index "<<this->get_gid()<<" to "<<to<<"\t"<<"lag "<<lag<<"\t"<<"h "<<h<<"\t time"<<t+h*lag<<"\t"<<" S_.I_="<<S_.I_<<"\n";
 	//behav_learning_loc->get_learning_vector(P_.number_prim_)
 	//calculate currents
 	//add value to t_parametrs
@@ -399,9 +404,10 @@ void nest::iaf_neuron_dif_alpha::update(Time const & origin, const long_t from, 
 	std::vector<double > currents;	
 	set_learning_variables((*d),t+h*lag,currents);
 	//std::cout<<"opop"<<"\n";
+	
 	if (behav_learning_loc->learn(behav_loc,(*d),currents))
 	{
-		std::cout<<"spike_time"<<"\n";
+		//*std::cout<<"spike_time"<<"\n";
 		//clean spike history
 		S_.r_ = V_.RefractoryCounts_;
 		S_.v_= P_.E_L_;   
