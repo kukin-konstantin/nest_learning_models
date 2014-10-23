@@ -188,25 +188,34 @@ void Dif_alpha_stdp::send(Event& e, double_t t_lastspike, const CommonSynapsePro
   target_->get_history(t_lastspike - dendritic_delay, t_spike - dendritic_delay,
                          &start, &finish);
   double_t minus_dt;
+  double_t m_minus_dt;
   std::deque<histentry>::iterator post_first_spike=start;
   std::deque<histentry>::iterator post_last_spike=finish;
   while (start != finish)
   {
     post_last_spike=start;
-    minus_dt = t_lastspike - (start->t_ + dendritic_delay);
+    minus_dt = -t_spike+(start->t_ + dendritic_delay);
     start++;
     if (minus_dt == 0)
       continue;
-    //weight_ = facilitate_(weight_,  std::exp(minus_dt / tau_plus_));
   }
+  //std::cout<<"depress"<<"\t";
   if (post_last_spike!=finish)
   {
+    //std::cout<<"t_spike="<<t_spike<<"\t"<<"post_last_spike="<<post_last_spike->t_<<"\t";
     minus_dt = -t_spike + (post_last_spike->t_ + dendritic_delay);
+    //std::cout<<"minus_dt="<<minus_dt<<"\n";
     //if ((minus_dt != 0)&&(std::abs(minus_dt)>2.0))
-    if ((minus_dt != 0)&&(std::abs(minus_dt)>2.0)&&(std::abs(minus_dt)<3*20.0))
+    if ((minus_dt != 0)&&(std::abs(minus_dt)>2.0)&&(std::abs(minus_dt)<3*20.0))//allowed
+    //if (minus_dt != 0)
+    {
       //weight_ = depress_(weight_, std::exp((minus_dt) / 20.0));
       weight_ = depress_(weight_, std::exp(minus_dt/ tau_minus_));
+      //std::cout<<"depress "<<"\t";
+      //std::cout<<"t_spike="<<t_spike<<"\t"<<"post_last_spike="<<post_last_spike->t_<<"\t";
+      //std::cout<<"minus_dt="<<minus_dt<<"\n";
       //weight_ = depress_(weight_, std::exp((minus_dt) / 20.0));
+    }
   }
   // synapse STDP depressing/facilitation dynamics
   //tsodyk

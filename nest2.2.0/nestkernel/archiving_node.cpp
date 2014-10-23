@@ -40,7 +40,7 @@ namespace nest {
     triplet_Kminus_(0.0),
     tau_minus_(20.0),
     tau_minus_triplet_(110.0),
-    last_spike_(-1.0)
+    last_spike_(-1000.0) //-1.0 by default
   {}
 
   nest::Archiving_Node::Archiving_Node(const Archiving_Node& n)

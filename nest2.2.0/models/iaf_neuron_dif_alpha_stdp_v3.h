@@ -159,7 +159,7 @@ Receives: SpikeEvent, CurrentEvent, DataLoggingRequest
       /** External current in pA */
       double_t I_e_;
       
-      double_t I_syn_; //for Anton
+      bool switch_work_mode_;
       
       Parameters_();  //!< Sets default parameter values
 
@@ -173,9 +173,10 @@ Receives: SpikeEvent, CurrentEvent, DataLoggingRequest
      * State variables of the model.
      */
     struct State_ {
-	  double_t     v_; // membrane potential
+      double_t     v_; // membrane potential
       double_t     I_; // input current
       
+      std::vector<double_t> time_list_;
       int_t    r_;  //!< number of refractory steps remaining
 
       State_();  //!< Default initialization
@@ -311,8 +312,7 @@ double iaf_neuron_dif_alpha_stdp::heaviside (double t)
 inline
 double iaf_neuron_dif_alpha_stdp::alpha_function(double t, double tau_a)
 {
-	//return std::exp(-t/tau_a)*heaviside(t)*(t/tau_a); //alpha
-	return std::exp(-t/tau_a)*heaviside(t); //exp
+	return std::exp(-t/tau_a)*heaviside(t);
 }
 
 
@@ -321,9 +321,7 @@ void iaf_neuron_dif_alpha_stdp::clear_spike_history(double t)
 {
   std::map<std::pair<index,index>,struct_iaf_neuron_dif_alpha_stdp >::iterator it=behav_loc->val.begin();
   std::vector<double_t > t_v_time_spike_times;
-  std::vector<double_t > t_v_dynamic_weights;
   double t_spike;
-  double t_dynamic_weight;
   //std::cout<<"before t="<<t<<" ";
   while (it!=behav_loc->val.end())
   {
@@ -332,29 +330,21 @@ void iaf_neuron_dif_alpha_stdp::clear_spike_history(double t)
     for (int i=0;i!=(*it).second.base_val.v_time_spike_times.size();i++)
     {
 	t_spike=(*it).second.base_val.v_time_spike_times[i];
-	t_dynamic_weight=(*it).second.dynamic_weights[i];
 	//std::cout<<"t_spike="<<t_spike<<" ";
 	if (t<=t_spike)
 	{
-	  //std::cout<<"yes"<<"\n";
+	  //std::cout<<"yes"<<" ";
 	  t_v_time_spike_times.push_back(t_spike);
-	  t_v_dynamic_weights.push_back(t_dynamic_weight);
 	}
     }
     (*it).second.base_val.v_time_spike_times.clear();
-    (*it).second.dynamic_weights.clear();
-    
     std::copy (t_v_time_spike_times.begin(),t_v_time_spike_times.end() , std::back_inserter((*it).second.base_val.v_time_spike_times));
-    
-    std::copy (t_v_dynamic_weights.begin(),t_v_dynamic_weights.end() , std::back_inserter((*it).second.dynamic_weights));
     //std::cout<<"end_ ";
     //std::copy ((*it).second.base_val.v_time_spike_times.begin(),(*it).second.base_val.v_time_spike_times.end(),std::ostream_iterator<double>(std::cout,"#"));//delete
     //std::cout<<"_end ";
     t_v_time_spike_times.clear();
-    t_v_dynamic_weights.clear();
     it++;
   }
-  //std::cout<<"\n";
 }
 
 inline
@@ -381,7 +371,6 @@ double iaf_neuron_dif_alpha_stdp::get_sum_I(double t)
 	    /*delete after use*/
 	    double sum_inter=0;
 	    double t_spike;
-	    double t_dynamic_weight;
 	    //std::cout<<"g_max "<<(*it).second.g_max<<"\t";
 	    //std::cout<<"E_rev "<<(*it).second.E_rev<<"\t";
 	    //std::cout<<"w="<<(*it).second.base_val.weight<<" ";
@@ -389,7 +378,6 @@ double iaf_neuron_dif_alpha_stdp::get_sum_I(double t)
 	    for (int i=0;i!=(*it).second.base_val.v_time_spike_times.size();i++)
 	    {
 		t_spike=(*it).second.base_val.v_time_spike_times[i];
-		t_dynamic_weight=(*it).second.dynamic_weights[i];
 		//std::cout<<" t_spike="<<t_spike<<"\t";
 		//sum_inter+=alpha_function(t-t_spike,t_tau_a);
 		//std::cout<<" t_spike="<<abs(t_spike-t)<<" ";
@@ -399,13 +387,13 @@ double iaf_neuron_dif_alpha_stdp::get_sum_I(double t)
 		  //std::cout<<"index2="<<(*it).first.second<<"\t";
 		  //std::cout<<"t="<<t<<" t_spike="<<t_spike<<" abs="<<abs(t_spike-t)<<" ";
 		  //std::cout<<"dynamic_weight="<<(*it).second.dynamic_weight<<"\t";
-		  sum_inter+=t_dynamic_weight*alpha_function(t-t_spike,t_tau_a); // delay????
+		  sum_inter+=alpha_function(t-t_spike,t_tau_a);
 		//}
 	    }
 	    //std::cout<<"sin="<<sum_inter<<"\t";
 	    //std::cout<<"sum_out="<<(*it).second.dynamic_weight*sum_inter<<"\t";
 	    //sum+=(*it).second.base_val.weight*sum_inter;
-	    sum+=sum_inter;
+	    sum+=(*it).second.dynamic_weight*sum_inter;
 	    it++;
 	}
 	//std::cout<<sum<<"\n";

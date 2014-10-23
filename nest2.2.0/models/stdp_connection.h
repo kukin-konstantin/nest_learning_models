@@ -200,6 +200,7 @@ void STDPConnection::send(Event& e, double_t t_lastspike, const CommonSynapsePro
   // synapse STDP depressing/facilitation dynamics
 
   double_t t_spike = e.get_stamp().get_ms();
+  std::cout<<"t_spike="<<t_spike<<"\t";//delete!
   // t_lastspike_ = 0 initially
   double_t dendritic_delay = Time(Time::step(delay_)).get_ms();
 
@@ -216,6 +217,7 @@ void STDPConnection::send(Event& e, double_t t_lastspike, const CommonSynapsePro
                          &start, &finish);
   //facilitation due to post-synaptic spikes since last pre-synaptic spike
   double_t minus_dt;
+  std::cout<<"facilitate"<<"\n";//delete
   while (start != finish)
   {
     minus_dt = t_lastspike - (start->t_ + dendritic_delay);
@@ -223,8 +225,12 @@ void STDPConnection::send(Event& e, double_t t_lastspike, const CommonSynapsePro
     if (minus_dt == 0)
       continue;
     weight_ = facilitate_(weight_, Kplus_ * std::exp(minus_dt / tau_plus_));
+    std::cout<<"t_lastspike-(start->t_ + dendritic_delay)="<<minus_dt<<"\t";// delete!
+    //std::cout<<"start->t_="<<start->t_<<"\t";// delete!
+    //std::cout<<"dendritic_delay="<<dendritic_delay<<"\t";// delete!
+    //std::cout<<"t_lastspike="<<t_lastspike<<"\n"; //delete
   }
-
+  std::cout<<"depress"<<"\n";//delete
   //depression due to new pre-synaptic spike
   weight_ = depress_(weight_, target_->get_K_value(t_spike - dendritic_delay));
 
